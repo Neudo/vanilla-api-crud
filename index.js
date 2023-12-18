@@ -5,6 +5,7 @@ const User = require("./app/Models/User")
 const {all, user, createUser, deleteUser, updateUser} = require("./app/Controllers/UserController")
 
 
+
 const server = http.createServer(async (req, res) => {
     let url = req.url
     let method = req.method
@@ -14,10 +15,8 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({url }))
     } else if (url === "/users" && method === "GET") {
         all(req, res)
-
-
     }  else if (url === "/users" && method === "POST") {
-      createUser(req, res)
+     createUser(req, res)
     } else if (url.match(/\/users\/([0-9]+)/) && method === "GET") {
         const id = url.split("/")[2]
         user(req, res, id)

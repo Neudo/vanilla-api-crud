@@ -15,8 +15,20 @@ async function all(req, res) {
 async function user(req, res, id) {
     try {
         const user = await User.getUser(id);
+        if(!user) {
+            res.writeHead(404, {"Content-Type": "application/json"});
+            res.end(JSON.stringify({error: 'Utilisateur non trouvé'}));
+            return;
+        }
         res.writeHead(200, {"Content-Type": "application/json"});
-        res.end(JSON.stringify(user));
+        const cleanUser = {
+            name: user.name,
+            email: user.email,
+            id: user.id,
+            created_at: user.created_at,
+            updated_at: user.updated_at
+        }
+        res.end(JSON.stringify(cleanUser));
     } catch (error) {
         console.error('Erreur lors de la récupération de l\'utilisateur :', error);
         res.writeHead(500, {"Content-Type": "application/json"});
@@ -35,7 +47,12 @@ async function createUser(req, res) {
         try {
             const user = await User.createUser(JSON.parse(data));
             res.writeHead(200, {"Content-Type": "application/json"});
-            res.end(JSON.stringify(user));
+            const cleanUser = {
+                name: user.name,
+                email: user.email,
+                id: user.id
+            }
+            res.end(JSON.stringify(cleanUser));
         } catch (error) {
             console.error('Erreur lors de la création de l\'utilisateur :', error);
             res.writeHead(500, {"Content-Type": "application/json"});
@@ -54,6 +71,11 @@ async function updateUser(req, res, id) {
     req.on('end', async () => {
         try {
             const user = await User.updateUser(id, JSON.parse(data));
+            if(!user) {
+                res.writeHead(404, {"Content-Type": "application/json"});
+                res.end(JSON.stringify({error: 'Utilisateur non trouvé'}));
+                return;
+            }
             res.writeHead(200, {"Content-Type": "application/json"});
             res.end(JSON.stringify(user));
         } catch (error) {
@@ -67,8 +89,13 @@ async function updateUser(req, res, id) {
 async function deleteUser(req, res, id) {
     try {
         const user = await User.deleteUser(id);
-        res.writeHead(200, {"Content-Type": "application/json"});
-        res.end(JSON.stringify(user));
+        if(!user) {
+            res.writeHead(404, {"Content-Type": "application/json"});
+            res.end(JSON.stringify({error: 'Utilisateur non trouvé'}));
+            return;
+        }
+        res.writeHead(204, {"Content-Type": "application/json"});
+        res.end();
     } catch (error) {
         console.error('Erreur lors de la suppression de l\'utilisateur :', error);
         res.writeHead(500, {"Content-Type": "application/json"});
