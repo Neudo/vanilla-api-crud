@@ -2,51 +2,35 @@ const http = require("http")
 const fs = require("fs")
 const db = require("./bootstrap/Db")
 const User = require("./app/Models/User")
+const {all, user, createUser, deleteUser, updateUser} = require("./app/Controllers/UserController")
 
 
-const server = http.createServer(async (request, response) => {
-    let url = request.url
-    let method = request.method
+const server = http.createServer(async (req, res) => {
+    let url = req.url
+    let method = req.method
 
     if (url === "/") {
-        response.writeHead(200, {"Content-Type": "application/json"})
-        response.end(JSON.stringify({url }))
+        res.writeHead(200, {"Content-Type": "application/json"})
+        res.end(JSON.stringify({url }))
     } else if (url === "/users" && method === "GET") {
-        try {
-            const users = await User.getUsers();
-            response.writeHead(200, {"Content-Type": "application/json"});
-            response.end(JSON.stringify(users));
-        } catch (error) {
-            console.error('Erreur lors de la récupération des utilisateurs :', error);
-            response.writeHead(500, {"Content-Type": "application/json"});
-            response.end(JSON.stringify({error: 'Erreur serveur'}));
-        }
+        all(req, res)
+
 
     }  else if (url === "/users" && method === "POST") {
-        let data = '';
-
-        request.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        request.on('end', async () => {
-            console.log(data);
-            try {
-                const user = await User.createUser(JSON.parse(data));
-                response.writeHead(200, {"Content-Type": "application/json"});
-                response.end(JSON.stringify(user));
-            } catch (error) {
-                console.error('Erreur lors de la création de l\'utilisateur :', error);
-                response.writeHead(500, {"Content-Type": "application/json"});
-                response.end(JSON.stringify({error: 'Erreur serveur'}));
-            }
-        });
+      createUser(req, res)
+    } else if (url.match(/\/users\/([0-9]+)/) && method === "GET") {
+        const id = url.split("/")[2]
+        user(req, res, id)
+    } else if (url.match(/\/users\/([0-9]+)/) && method === "PUT") {
+        const id = url.split("/")[2]
+        updateUser(req, res, id)
+    } else if (url.match(/\/users\/([0-9]+)/) && method === "DELETE") {
+        const id = url.split("/")[2]
+        deleteUser(req, res, id)
     }
-
-
     else {
-        response.writeHead(404, {"Content-Type": "application/json"})
-        response.end(JSON.stringify({error: 404}))
+        res.writeHead(404, {"Content-Type": "application/json"})
+        res.end(JSON.stringify({error: 404}))
     }
 
 })
