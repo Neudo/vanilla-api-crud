@@ -1,7 +1,4 @@
 const http = require("http")
-const fs = require("fs")
-const db = require("./bootstrap/Db")
-const User = require("./app/Models/User")
 const {all, user, createUser, deleteUser, updateUser} = require("./app/Controllers/UserController")
 
 

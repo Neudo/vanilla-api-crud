@@ -1,4 +1,8 @@
 const User = require("../Models/User")
+const CreateUserValidator = require('./../Validator/UserValidator')
+const bcrypt = require('bcrypt');
+
+
 
 async function all(req, res) {
     try {
@@ -46,13 +50,29 @@ async function createUser(req, res) {
     req.on('end', async () => {
         try {
             const user = await User.createUser(JSON.parse(data));
-            res.writeHead(200, {"Content-Type": "application/json"});
-            const cleanUser = {
+
+            const hashedPassword = await bcrypt.hash(user.password, 10);
+            const userHashed = await User.createUser({
                 name: user.name,
                 email: user.email,
-                id: user.id
+                password: hashedPassword,
+            });
+
+            const validationError = CreateUserValidator(userHashed);
+            if (validationError) {
+                res.writeHead(422, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: validationError.message }));
+            } else {
+                res.writeHead(200, {"Content-Type": "application/json"});
+                const cleanUser = {
+                    name: userHashed.name,
+                    email: userHashed.email,
+                    id: userHashed.id,
+                }
+                res.end(JSON.stringify(cleanUser));
             }
-            res.end(JSON.stringify(cleanUser));
+
+
         } catch (error) {
             console.error('Erreur lors de la création de l\'utilisateur :', error);
             res.writeHead(500, {"Content-Type": "application/json"});
